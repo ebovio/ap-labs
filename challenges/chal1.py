@@ -11,6 +11,7 @@ def test(str):
             newString = []
             list.append(counter)
             counter = 0
+    list.append(counter)        
     answer = max(list)
     print(answer)
 
