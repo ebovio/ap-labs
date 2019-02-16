@@ -31,8 +31,9 @@ void analizeLog(char *logFile, char *report) {
     char c;
     char *f = (char *)malloc(sizeof(char)*1);
     int counter = 0;
-    char category[10000000] = "";
-    char *line = (char *)malloc(sizeof(char)*100000);
+    char *line = (char *)malloc(sizeof(char)*1000);
+    char *fNext = (char *)malloc(sizeof(char)*1);
+    int state = 1;
 
     if (fileInput < 0){
         printf("Error\n");
@@ -41,7 +42,7 @@ void analizeLog(char *logFile, char *report) {
             printf("Unable to create the report file\n");
         }
         while((c = read(fileInput, f, 1)) > 0 ){
-            if(*f == '\n'){
+            /*if(*f == '\n'){
                 lineCheck(line);
 	            *line = 0;
             } else {
@@ -50,17 +51,22 @@ void analizeLog(char *logFile, char *report) {
             }
             
             // Tried by states but didn't work :( 
-            /*if(state == 1){
+            */
+            if(state == 1){
                 write(fileOutput, f, 1);
                 if(*f == ']'){
                     write(fileOutput, " ", 1);
                     state = 2;
-                }
+                } 
             }
             if(state == 2){
+                char *text = (char *)malloc(sizeof(char)*1000);
+                int i = 0;
                 text[i] = *f;
                 i++;
-                if(*f == ':'){
+                if(*f == ':' ){
+                    write(fileOutput, "\n", 1);
+                    write(fileOutput, text, 1);
                     state = 3;
                 }
                 if(*f == '\n'){
@@ -72,7 +78,7 @@ void analizeLog(char *logFile, char *report) {
                 if(*f == '\n'){
                     state = 1;
                 }
-            }*/
+            }
         } 
         close(fileInput);
         close(fileOutput);
@@ -81,7 +87,7 @@ void analizeLog(char *logFile, char *report) {
 }
 
 
-void lineCheck(char *line){
+/*void lineCheck(char *line){
     char c;
     char *f = (char *)malloc(sizeof(char)*1);
     char *fNext = (char *)malloc(sizeof(char)*1);
@@ -95,5 +101,5 @@ void lineCheck(char *line){
             *f = *line;
         }  
     } 
-}
+}*/
 
