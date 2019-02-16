@@ -20,7 +20,6 @@ func scanDir(dir string) error {
 		if f.Mode()&os.ModeSymlink != 0 {
 			symbolicLinks++
 		}
-
 		if f.Mode().IsRegular() {
 			other++
 		}
