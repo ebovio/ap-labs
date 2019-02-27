@@ -34,6 +34,6 @@ func main() {
 		finish <- 2
 	}
 
-	_ = <-finish // wait for background goroutine to finish
+	_ = <-finish
 	close(finish)
 }
