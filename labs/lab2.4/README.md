@@ -1,4 +1,4 @@
-Lab 2.2 - Logger Library
+Lab 2.4 - Add syslog support to your logger
 ===================
 
 To compile
