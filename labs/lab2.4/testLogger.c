@@ -20,7 +20,7 @@ int main(){
 	panicf("Don't panic! Non recoverable issues with core dump.\n");
 
 	printf("\n");
-	printf("Check your syslog file at /var/log/syslog to see the rest of calls\n");
+	printf("Check at /var/log/syslog \n");
 	initLogger("syslog");   
 	infof("[info]\n");
 	warnf("[warn] %s \n", "warn");
