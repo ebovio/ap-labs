@@ -1,9 +1,4 @@
-int initLogger (char *logType);
-int infof(const char *format, ...);
-int warnf(const char *format, ...);
-int errorf(const char *format, ...);
-int panicf(const char *format, ...);
-void textcolor(int attr, int fg);
+#include "logger.h"
 
 int main(){
 	infof("This is general information.\n");
@@ -12,7 +7,7 @@ int main(){
 	panicf("Don't panic! Non recoverable issues with core dump.\n");
 
 	printf("\n");
-
+	// stdout logging
 	initLogger("stdout");   
 	infof("This is general information.\n");
 	warnf("This is a warning.\n");
@@ -21,6 +16,8 @@ int main(){
 
 	printf("\n");
 	printf("Check at /var/log/syslog \n");
+	
+	// syslog logging
 	initLogger("syslog");   
 	infof("[info]\n");
 	warnf("[warn] %s \n", "warn");
