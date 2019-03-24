@@ -1,8 +1,8 @@
 CC       = gcc
 CFLAGS   = -Wall
 LDFLAGS  =
-OBJFILES = logger.o monitor.o
-TARGET   = monitor
+OBJFILES = logger.o base64.o
+TARGET   = base64
 
 all: $(TARGET)
 

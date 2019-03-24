@@ -1,4 +1,4 @@
-Lab 3.1 - File/Directory Monitor
+Lab 3.2 - Progress Notifier with Signals
 ===================
 
 To compile
@@ -10,5 +10,5 @@ make
 To run
 ---------------------------------------
 ```
-./monitor directoryname
+./base64 directoryname
 ```
