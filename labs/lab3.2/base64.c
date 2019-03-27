@@ -18,7 +18,106 @@ struct stat st;
 unsigned long size;
 unsigned long written;
 
+int base64encode(const void *data_buf, size_t dataLength, char *result, size_t resultSize);
+int base64decode(char *in, size_t inLen, unsigned char *out, size_t * outLen);
+
 /* The implementation of the algorithim Base64c was retrieved from https://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64  */
+
+static void sigHandler(int sig) {
+	unsigned long progress = (written * 100) / size;
+	infof("signal: %d; progress: %ld\n", sig, progress);
+}
+
+int main(int argc, char **argv){
+	if (strcmp(argv[1], "--encode") == 0) {
+		int fileInput, fileOutput, sizeReadBuffer, sizeWriteBuffer;
+		char *readBuffer, *writeBuffer;
+
+		fileInput = open(argv[2], O_RDONLY);
+
+		if (fileInput == -1) {
+			errorf("Unable to open the file %s!\n", argv[2]);
+			close(fileInput);
+			exit(EXIT_FAILURE);
+		}
+
+		stat(argv[2], &st);
+		size = st.st_size;
+		fileOutput = open("encoded.txt", O_WRONLY | O_CREAT, 0755);
+
+		if (fileOutput == -1) {
+			errorf("Unable to create the file\n");
+			close(fileOutput);
+			exit(EXIT_FAILURE);
+		}
+
+		readBuffer = (char *)malloc(3);
+		writeBuffer = (char *)malloc(4);
+		sizeReadBuffer = 3;
+		sizeWriteBuffer = 4;
+
+		int done;
+		while ((done = read(fileInput, readBuffer, sizeReadBuffer)) > 0) {
+			base64encode(readBuffer, sizeReadBuffer, writeBuffer, sizeWriteBuffer);
+			write(fileOutput, writeBuffer, sizeWriteBuffer);
+			written += done;
+			memset(readBuffer, 0, sizeReadBuffer);
+		}
+		close(fileInput);
+		close(fileOutput);
+		infof("File created -> encoded.txt\n"); 
+
+	} else if (strcmp(argv[1], "--decode") == 0) {
+		int fileInput, fileOutput, sizeReadBuffer;
+		size_t *sizeWriteBuffer;
+		char *readBuffer;
+		unsigned char *writeBuffer;
+
+		fileInput = open(argv[2], O_RDONLY);
+		if (fileInput == -1) {
+			errorf("Unable to open the file  %s!\n", argv[2]);
+			close(fileInput);
+			exit(EXIT_FAILURE);
+		}
+
+		stat(argv[2], &st);
+		size = st.st_size;
+		fileOutput = open("decoded.txt", O_WRONLY | O_CREAT, 0755);
+
+		if (fileOutput == -1) {
+			errorf("Unable to create the file\n");
+			close(fileOutput);
+			exit(EXIT_FAILURE);
+		}
+
+		readBuffer = (char *)malloc(4);
+		writeBuffer = (unsigned char *)malloc(3);
+		sizeWriteBuffer = (size_t *) malloc(sizeof(size_t));
+		sizeReadBuffer = 4;
+		*sizeWriteBuffer = 3;
+
+		int done;
+		while ((done = read(fileInput, readBuffer, sizeReadBuffer)) > 0) {
+			base64decode(readBuffer, sizeReadBuffer, writeBuffer, sizeWriteBuffer);
+			write(fileOutput, writeBuffer, *sizeWriteBuffer);
+			written += done;
+			memset(readBuffer, 0, sizeReadBuffer);
+		}
+		close(fileInput);
+		close(fileOutput);
+		infof("File created -> decoded.txt\n"); 
+	} else {
+		infof("Correct usage: ./base64 (--encode|--decode) nameFile.txt\n");
+	    exit(EXIT_FAILURE);
+	}
+
+	if(signal(SIGINT, sigHandler) == SIG_ERR) {
+		errorf("Unable catch SIGINT\n");
+	}
+
+	exit(EXIT_SUCCESS);
+	return 0;
+}
 
 static const unsigned char d[] = {
 	66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 64, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66,
@@ -147,93 +246,4 @@ int base64encode(const void *data_buf, size_t dataLength, char *result, size_t r
 	if (resultIndex >= resultSize) return 1;	/* indicate failure: buffer too small */
 	result[resultIndex] = 0;
 	return 0;		/* indicate success */
-}
-
-int main(int argc, char **argv){
-	if (argc != 3){
-        printf("Correct usage:\n./base64 (--encode|--decode) nameFile.txt\n");
-	    exit(EXIT_FAILURE);
-    }
-	if (strcmp(argv[1], "--encode") == 0) {
-		int fileInput, fileOutput, sizeReadBuffer, sizeWriteBuffer;
-		char *readBuffer, *writeBuffer;
-
-		fileInput = open(argv[2], O_RDONLY);
-
-		if (fileInput == -1) {
-			errorf("ERROR: Unable to open the file %s!\n", argv[2]);
-			close(fileInput);
-			exit(EXIT_FAILURE);
-		}
-
-		stat(argv[2], &st);
-		size = st.st_size;
-		fileOutput = open("encoded.txt", O_WRONLY | O_CREAT, 0755);
-
-		if (fileOutput == -1) {
-			errorf("ERROR: Unable to create the file\n");
-			close(fileOutput);
-			exit(EXIT_FAILURE);
-		}
-
-		readBuffer = (char *)malloc(3);
-		writeBuffer = (char *)malloc(4);
-		sizeReadBuffer = 3;
-		sizeWriteBuffer = 4;
-
-		int done;
-		while ((done = read(fileInput, readBuffer, sizeReadBuffer)) > 0) {
-			base64encode(readBuffer, sizeReadBuffer, writeBuffer, sizeWriteBuffer);
-			write(fileOutput, writeBuffer, sizeWriteBuffer);
-			written += done;
-			memset(readBuffer, 0, sizeReadBuffer);
-		}
-		close(fileInput);
-		close(fileOutput);
-
-	} else if (strcmp(argv[1], "--decode") == 0) {
-		int fileInput, fileOutput, sizeReadBuffer;
-		size_t *sizeWriteBuffer;
-		char *readBuffer;
-		unsigned char *writeBuffer;
-
-		fileInput = open(argv[2], O_RDONLY);
-		if (fileInput == -1) {
-			errorf("ERROR: Unable to open the file  %s!\n", argv[2]);
-			close(fileInput);
-			exit(EXIT_FAILURE);
-		}
-
-		stat(argv[2], &st);
-		size = st.st_size;
-		fileOutput = open("decoded.txt", O_WRONLY | O_CREAT, 0755);
-
-		if (fileOutput == -1) {
-			errorf("ERROR: Unable to create the file\n");
-			close(fileOutput);
-			exit(EXIT_FAILURE);
-		}
-
-		readBuffer = (char *)malloc(4);
-		writeBuffer = (unsigned char *)malloc(3);
-		sizeWriteBuffer = (size_t *) malloc(sizeof(size_t));
-		sizeReadBuffer = 4;
-		*sizeWriteBuffer = 3;
-
-		int done;
-		while ((done = read(fileInput, readBuffer, sizeReadBuffer)) > 0) {
-			base64decode(readBuffer, sizeReadBuffer, writeBuffer, sizeWriteBuffer);
-			write(fileOutput, writeBuffer, *sizeWriteBuffer);
-			written += done;
-			memset(readBuffer, 0, sizeReadBuffer);
-		}
-		close(fileInput);
-		close(fileOutput);
-        
-	} else {
-		printf("Usage:\n./base64 (--encode|--decode) file\n");
-	    exit(EXIT_FAILURE);
-	}
-	exit(EXIT_SUCCESS);
-	return 0;
 }
