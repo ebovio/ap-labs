@@ -81,7 +81,7 @@ func handleConn(conn net.Conn) {
 	var message = ""
 	var other = ""
 	var username = ""
-	var first = 1
+	var login = 1
 
 	who := conn.RemoteAddr().String()
 	ch <- "Welcome to the Simple IRC Server."
@@ -90,10 +90,10 @@ func handleConn(conn net.Conn) {
 	input := bufio.NewScanner(conn)
 	for input.Scan() {
 		inputChat := strings.Split(input.Text(), " ")
-		if first == 1 {
+		if login == 1 {
 			listUsers = append(listUsers, user{inputChat[0], who})
 			username = inputChat[0]
-			first = 0
+			login = 0
 			entering <- ch
 			messages <- username + " has joined"
 		} else {
