@@ -7,5 +7,5 @@ make
 
 To run
 --------------------
-./mytop 
+sudo ./mytop 
 
