@@ -15,5 +15,5 @@ To run
 --------------------
 go run server.go -host <host> -port <port number> (in one terminal)
 
-go run client.go -user <name> -server <server> (you can run as much clients as you wants by opening a new terminal)
+go run client.go -server <server> (you can run as much clients as you wants by opening a new terminal)
 
