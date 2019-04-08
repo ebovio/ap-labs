@@ -21,11 +21,11 @@ void clear();
 
 struct process{
     char pid[10];
-    char parentPid[40];
-    char name[30];
-    char state[30];
-    char memory[50];
-    char threads[30];
+    char parentPid[10];
+    char name[10];
+    char state[10];
+    char memory[10];
+    char threads[10];
     int openFiles; 
 };
 
@@ -33,20 +33,69 @@ struct process processes[2000];
 int counter = 0;
 int position = 0;
 
+int main(){
+	if (signal(SIGINT, signalHandler) == SIG_ERR){
+            perror("ERROR: Unable to catch signal\n");
+	}
+	
+	struct dirent *dir;
+
+	DIR *d = opendir("/proc/");
+
+	char path[30], fpath[30];
+	int c = 1;
+    while(1){
+		strcpy(path, "/proc/");
+		strcpy(fpath, "/proc/");
+		while((dir = readdir(d)) != NULL) {
+			if(isdigit(dir->d_name[0])){
+				strcat(path, dir->d_name);
+				strcat(path, "/status");
+				strcpy(processes[position].memory, "0");
+				analizeText(path);
+				position++;
+				strcpy(path, "/proc/");
+				strcat(fpath, dir->d_name);
+				strcat(fpath, "/fd");
+				searchOpenFiles(fpath);
+				counter++;
+			}
+		}
+		printTable();
+		sleep(5);
+		clear();
+		c++;
+    }
+    clear();
+    return 0;
+}
+
+void searchOpenFiles(char *fpath){
+		int counterOpenFiles;
+		DIR *fdd = opendir(fpath);
+		struct dirent *fd_dir;
+		while((fd_dir = readdir(fdd)) != NULL) {
+			counterOpenFiles++;
+		}
+		closedir(fdd);
+		processes[position].openFiles = counterOpenFiles - 2;
+		strcpy(fpath, "/proc/");
+}
+
 
 void printTable(){
 	float memory;
-	printf("+-------+--------+------------------------------------------+------------+----------+-----------+------------+\n");
- 	printf("|  PID  | Parent |                   Name                   |   State    |  Memory  | # Threads | Open Files |\n");
-  	printf("+-------+--------+------------------------------------------+------------+----------+-----------+------------+\n");
+	printf("+--------+--------+---------------+-------+----------+----------+----------------------------------------+\n");
+	printf("|   PID  | Parent |     State     |Threads|  Memory  |Open Files|                   Name                 |\n");
+	printf("+--------+--------+---------------+-------+----------+----------+----------------------------------------+\n");
 	for(int i = 0; i < position; i++){
 		if(processes[i].pid == 0){
 			continue;
 		}
 		memory = atof(processes[i].memory) / 1000;
-		printf("| %-5s | %-6s | %-40s | %-10s | %-7dM | %-9s | %-10d |\n", processes[i].pid, processes[i].parentPid, processes[i].name, processes[i].state, memory, processes[i].threads, processes[i].openFiles);	
+		printf("|%8s|%8s|%15s|%7s|%8.4f M|%10i|%40s|\n", processes[i].pid, processes[i].parentPid, processes[i].state, processes[i].threads, memory, processes[i].openFiles, processes[i].name);	
 	}
-	printf("+-------+--------+------------------------------------------+------------+----------+-----------+------------+\n");
+	printf("+--------+--------+---------------+-------+----------+----------+----------------------------------------+\n");
 	return;
 }
 
@@ -67,25 +116,21 @@ static void signalHandler(int sig){
 		perror("Unable to open file");
 		exit(1);
 	}
-	fprintf(fd, "+-------+--------+------------------------------------------+------------+----------+-----------+------------+\n");
-	fprintf(fd, "|  PID  | Parent |                   Name                   |   State    |  Memory  | # Threads | Open Files |\n");
-	fprintf(fd, "+-------+--------+------------------------------------------+------------+----------+-----------+------------+\n");
+	printf(fd, "+--------+--------+---------------+-------+----------+----------+----------------------------------------+\n");
+	printf(fd, "|   PID  | Parent |     State     |Threads|  Memory  |Open Files|                   Name                 |\n");
+	printf(fd, "+--------+--------+---------------+-------+----------+----------+----------------------------------------+\n");
 	for(int i = 0; i < position; i++){
 		if(processes[i].pid == 0){
 			continue;
 		}
 		memory = atof(processes[i].memory) / 1000;
 		
-		fprintf(fd, "| %-5s | %-6s | %-40s | %-10s | %-7dM | %-9s | %-10d |\n", processes[i].pid, processes[i].parentPid, processes[i].name, processes[i].state, memory, processes[i].threads, processes[i].openFiles);	
+		fprintf(fd, "|%8s|%8s|%15s|%7s|%8.4f M|%10i|%40s|\n", processes[i].pid, processes[i].parentPid, processes[i].state, processes[i].threads, memory, processes[i].openFiles, processes[i].name);	
 
 	}
-	fprintf(fd, "+-------+--------+------------------------------------------+------------+----------+-----------+------------+\n");
+	fprintf(fd, "+--------+--------+---------------+-------+----------+----------+----------------------------------------+\n");
 	fclose(fd);
 	printf("Result written in file: %s\n", fileName);
-}
-
-void clear() {
-  printf("\e[1;1H\e[2J"); 
 }
 
 void processLine(char *line){
@@ -162,51 +207,6 @@ void analizeText(char *logFile) {
     close(fileInput);
 }
 
-int main(){
-	if (signal(SIGINT, signalHandler) == SIG_ERR){
-            perror("ERROR: Unable to catch signal\n");
-	}
-	
-	struct dirent *dir;
-
-	DIR *d = opendir("/proc/");
-
-	char path[30], fpath[30];
-	int c = 1;
-    while(1){
-		strcpy(path, "/proc/");
-		strcpy(fpath, "/proc/");
-		while((dir = readdir(d)) != NULL) {
-			if(isdigit(dir->d_name[0])){
-				strcat(path, dir->d_name);
-				strcat(path, "/status");
-				strcpy(processes[position].memory, "0");
-				analizeText(path);
-				position++;
-				strcpy(path, "/proc/");
-				strcat(fpath, dir->d_name);
-				strcat(fpath, "/fd");
-				searchOpenFiles(fpath);
-				counter++;
-			}
-		}
-		printTable();
-		sleep(5);
-		clear();
-		c++;
-    }
-    clear();
-    return 0;
-}
-
-void searchOpenFiles(char *fpath){
-		int counterOpenFiles;
-		DIR *fdd = opendir(fpath);
-		struct dirent *fd_dir;
-		while((fd_dir = readdir(fdd)) != NULL) {
-			counterOpenFiles++;
-		}
-		closedir(fdd);
-		processes[position].openFiles = counterOpenFiles - 2;
-		strcpy(fpath, "/proc/");
+void clear() {
+  printf("\e[1;1H\e[2J"); 
 }
