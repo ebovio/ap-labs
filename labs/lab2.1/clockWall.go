@@ -1,39 +1,39 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net"
 	"os"
 	"strings"
-	"time"
+	"sync"
 )
 
-func main() {
-	finish := make(chan int)
+func clockWall(conn net.Conn, city string, wg *sync.WaitGroup) {
+	for true {
+		_, err := io.Copy(os.Stdout, conn)
+		if err == nil {
+			break
+		}
+	}
+	log.Println("Connection with " + city + " : clock closed.")
+	wg.Done()
+}
 
-	for i := 1; i < len(os.Args); i++ {
+func main() {
+	var wg sync.WaitGroup
+	y := len(os.Args)
+
+	for i := 1; i < y; i++ {
 		city := strings.Split(os.Args[i], "=")[0]
 		port := strings.Split(os.Args[i], "=")[1]
 		conn, err := net.Dial("tcp", port)
 		if err != nil {
 			log.Fatal(err)
 		}
-		var err02 error
-		for true {
-			time.Sleep((1 * time.Second))
-			fmt.Printf(city + ": ")
-			_, err02 = io.CopyN(os.Stdout, conn, 9)
-			if err02 == io.EOF {
-				break
-			} else if err02 != nil {
-				log.Fatal(err02)
-			}
-		}
-		finish <- 2
+		wg.Add(1)
+		go clockWall(conn, city, &wg)
 	}
-
-	_ = <-finish
-	close(finish)
+	wg.Wait()
+	log.Println("All clocks are closed.")
 }
