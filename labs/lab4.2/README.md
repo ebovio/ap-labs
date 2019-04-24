@@ -1,4 +1,4 @@
-Lab 3.1 - File/Directory Monitor
+Lab 4.2 - Matrix Multiplication
 ===================
 
 To compile
@@ -10,5 +10,5 @@ make
 To run
 ---------------------------------------
 ```
-./monitor directoryname
+./multiplier -n <number of buffers>
 ```
