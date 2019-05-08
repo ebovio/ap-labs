@@ -34,30 +34,36 @@ int saveResultMatrix(long *result);
 
 int main (int argc, char *argv[])
 {
+    ///////////////////////////////////////////////////////
     if(argc < 3)
     {
         errorf("Usage: %s -n <buffers>\n", argv[0]);
         return -1;
     }
     NUM_BUFFERS = atoi(argv[2]);
+    ///////////////////////////////////////////////////////
 
+    ///////////////////////////////////////////////////////
     buffers = calloc(NUM_BUFFERS, sizeof(long*));
     for(int i = 0; i < NUM_BUFFERS; i++)
     {
         buffers[i] = calloc(1, sizeof(long));
     }
+    ///////////////////////////////////////////////////////
 
+    ///////////////////////////////////////////////////////
     mutexes = calloc(NUM_BUFFERS, sizeof(pthread_mutex_t));
     for(int i = 0; i < NUM_BUFFERS; i++)
     {
         pthread_mutex_init(&mutexes[i], NULL);
     }
+    ///////////////////////////////////////////////////////
 
     matA = readMatrix("matA.dat");
     matB = readMatrix("matB.dat");
 
     multiply(matA, matB);
-    infof("You can see the result in file: result.dat\n");
+    infof("Done\n");
 
     saveResultMatrix(result);
     free(buffers);
@@ -82,9 +88,9 @@ long *readMatrix(char *filename)
     if(!fp)
     {
         panicf("Error opening file\n");
-    }
+    } 
 
-    while ((nread = getline(&line, &len, fp)) != -1)
+    while ((nread = getline(&line, &len, fp)) != -1) 
     {
         //fwrite(line, nread, 1, stdout);
         res[i++] = strtol(line, NULL, 10);
@@ -124,6 +130,7 @@ int getLock(int threadID)
         res = pthread_mutex_trylock(&mutexes[i%NUM_BUFFERS]);
         if(res == 0)
         {
+            //warnf("Thread %d has locked number %d\n", threadID, i%NUM_BUFFERS);  //Uncomment to show the mutexes being shared
             return i%NUM_BUFFERS;
         }
         i++;
@@ -145,7 +152,7 @@ void* dotProduct(void *args)
 {
     struct dotProductArgs *dpArgs = (struct dotProductArgs *)args;
     long temp = 0;
-    int lock = getLock(dpArgs->index);
+    int lock = getLock(dpArgs->index);    
     dpArgs->vec1 = getRow(dpArgs->j, matA);
     dpArgs->vec2 = getColumn(dpArgs->k, matB);
     for(int i = 1; i < 2000+1; i++)
@@ -175,7 +182,7 @@ long *multiply(long *matA, long *matB)
             dpArgsArr[i].index = i;
             dpArgsArr[i].j = j;
             dpArgsArr[i].k = k;
-            int err = pthread_create(&threads[i%NUM_THREADS], &attr, dotProduct, (void *)&dpArgsArr[i]);
+            int err = pthread_create(&threads[i%NUM_THREADS], &attr, dotProduct, (void *)&dpArgsArr[i]); 
             if(err != 0)
             {
                 panicf("Error %d when creating thread %d", err, i);
