@@ -10,8 +10,8 @@ typedef struct Snake{
 
 }snake;
 
-void snake_init(snake *snake1){
-    snake1->symbol='*';
+void snake_init(snake *snake1, char symb){
+    snake1->symbol=symb;
     snake1->size=10;
     snake1->direction=RIGHT;
     snake1->prev_direction=DOWN;

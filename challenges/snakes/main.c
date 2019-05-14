@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <ncurses.h>
 #include <time.h>
+#include <omp.h>
 
 int num_enemies;
 int num_fruits;
@@ -34,8 +35,10 @@ int main(){
       }
       snake a_snake;
       snake_pos pos1;
+
+
       food *foods=malloc(num_fruits*sizeof(food));
-      snake_init(&a_snake);
+      snake_init(&a_snake, 'O');
       pos_init(&pos1);
       for(i=0; i<num_fruits; i++){
              food_init(&foods[i]);
@@ -51,6 +54,14 @@ int main(){
       }
 
       system ("/bin/stty raw");
+
+       omp_set_num_threads(num_enemies);
+       #pragma omp parallel
+       {
+              snake enemy;
+              snake_pos eneypos;
+
+       }
 
       while(!(game_over(&a_snake,&pos1))){
           while (!kbhit()){
