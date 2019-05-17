@@ -12,6 +12,7 @@ int num_enemies;
 int num_fruits;
 int i;
 char **state;
+int nThreads;
 
 #include "lib/controller/config.c"
 #include "lib/controller/print_to_console.c"
@@ -46,7 +47,7 @@ int main(){
       }
 
       system("clear");
-      system("stty -echo");             
+      system("stty -echo");
       snake_place(&a_snake,&pos1);
       set_borders();
       for(i=0; i<num_fruits; i++){
@@ -60,7 +61,8 @@ int main(){
        {
               snake enemy;
               snake_pos eneypos;
-
+              int id = omp_get_thread_num();
+              printf("Thread: %d\n", id);
        }
 
       while(!(game_over(&a_snake,&pos1))){
@@ -77,6 +79,8 @@ int main(){
       system ("/bin/stty cooked");
       system("stty echo");
       system("clear");
+  //    nThreads = omp_get_num_threads();
+    //  printf("Number of threads = %d\n", nThreads);
       printf("\n\n Game finished, your score: %d \n\n", score);
       return 0;
 }
